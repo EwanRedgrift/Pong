@@ -265,7 +265,6 @@ namespace Pong
             //}
 
 
-
             topSide.X = ball.X + 1;
             topSide.Y = ball.Y;
 
