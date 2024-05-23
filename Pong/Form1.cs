@@ -1,4 +1,19 @@
-﻿using System;
+﻿/*
+
+  ____  ____  ____       __ __   ___     __  __  _    ___  __ __ 
+ /    ||    ||    \     |  |  | /   \   /  ]|  |/ ]  /  _]|  |  |
+|  o  | |  | |  D  )    |  |  ||     | /  / |  ' /  /  [_ |  |  |
+|     | |  | |    /     |  _  ||  O  |/  /  |    \ |    _]|  ~  |
+|  _  | |  | |    \     |  |  ||     /   \_ |     \|   [_ |___, |
+|  |  | |  | |  .  \    |  |  ||     \     ||  .  ||     ||     |
+|__|__||____||__|\_|    |__|__| \___/ \____||__|\_||_____||____/ 
+                                                                 
+Air Hockey
+By Ewan Redgrift
+5/23/24
+
+*/
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -7,31 +22,36 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Media;
 
 namespace Pong
 {
     public partial class Form1 : Form
     {
-        Rectangle player1 = new Rectangle(10, 170, 25, 25);
-        Rectangle player2 = new Rectangle(580, 170, 25, 25);
+        Rectangle player1 = new Rectangle(140, 175, 30, 30);
+        Rectangle player2 = new Rectangle(550, 175, 30, 30);
+        Rectangle ball = new Rectangle(280, 180, 20, 20);
 
-        Rectangle ball = new Rectangle(295, 195, 10, 10);
-        Rectangle topSide = new Rectangle(296, 195, 8, 1);
-        Rectangle bottomSide = new Rectangle(296, 205, 8, 1);
-        Rectangle leftSide = new Rectangle(294, 196, 1, 8);
-        Rectangle rightSide = new Rectangle(305, 196, 1, 8);
+        Rectangle p1Bottom = new Rectangle(148, 202, 14, 7);
+        Rectangle p1Right = new Rectangle(137, 180, 7, 20);
+        Rectangle p1Left = new Rectangle(166, 180, 7, 20);
+        Rectangle p1Top = new Rectangle(149, 173, 14, 7);
 
-        Rectangle divider = new Rectangle(300, 0, 10, 600);
+        Rectangle p2Bottom = new Rectangle(557, 202, 14, 7);
+        Rectangle p2Right = new Rectangle(548, 180, 7, 20);
+        Rectangle p2Left = new Rectangle(576, 180, 7, 20);
+        Rectangle p2Top = new Rectangle(557, 173, 14, 7);
 
-        int turn = 1;
+
+        Rectangle divider = new Rectangle(295, 0, 10, 600);
 
         int player1Score = 0;
         int player2Score = 0;
 
-        int playerYSpeed = 6;
-        int playerXSpeed = 6;
-        float ballXSpeed = 5;
-        float ballYSpeed;
+        int playerSpeed = 7;
+        float ballHitSpeed = 5;
+        float ballXSpeed = 3;
+        float ballYSpeed = 3;
 
         bool wPressed = false;
         bool sPressed = false;
@@ -48,13 +68,20 @@ namespace Pong
         Random random = new Random();
 
         SolidBrush blueBrush = new SolidBrush(Color.DodgerBlue);
+        SolidBrush redBrush = new SolidBrush(Color.Red);
         SolidBrush whiteBrush = new SolidBrush(Color.White);
 
         Pen whitePen = new Pen(Color.White, 3);
+        Pen lightBlueBrush = new Pen(Color.LightBlue, 3);
+        Pen lightRedBrush = new Pen(Color.Pink, 3);
 
+        SoundPlayer boomSound = new SoundPlayer(Properties.Resources.Boom);
+        SoundPlayer coinSound = new SoundPlayer(Properties.Resources.Coin);
         public Form1()
         {
             InitializeComponent();
+
+            ResetBall(); //Randomized ball direction at start
         }
 
         private void Form1_KeyDown(object sender, KeyEventArgs e)
@@ -117,6 +144,12 @@ namespace Pong
                 case Keys.Right:
                     rightPressed = false;
                     break;
+                case Keys.Escape:
+                    if (gameTimer.Enabled == false)
+                    {
+                        ResetGame();
+                    }
+                    break;
             }
 
         }
@@ -132,149 +165,122 @@ namespace Pong
             if (ball.Y <= 0 || ball.Y >= this.Height - ball.Height)
             {
                 ballYSpeed *= -1;
+                boomSound.Play();
             }
 
             //move player 1
-            if (wPressed == true && player1.Y > 0)
+            if (wPressed && player1.Y > 0)
             {
-                player1.Y -= playerYSpeed;
+                player1.Y -= playerSpeed;
+                p1Bottom.Y -= playerSpeed;
+                p1Right.Y -= playerSpeed;
+                p1Top.Y -= playerSpeed;
+                p1Left.Y -= playerSpeed;
             }
 
-            if (sPressed == true && player1.Y < this.Height - player1.Height)
+            if (sPressed && player1.Y < this.Height - player1.Height)
             {
-                player1.Y += playerYSpeed;
+                player1.Y += playerSpeed;
+                p1Bottom.Y += playerSpeed;
+                p1Right.Y += playerSpeed;
+                p1Top.Y += playerSpeed;
+                p1Left.Y += playerSpeed;
             }
 
-            if (aPressed == true && player1.X > 0)
+            if (aPressed && player1.X > 0)
             {
-                player1.X -= playerXSpeed;
+                player1.X -= playerSpeed;
+                p1Bottom.X -= playerSpeed;
+                p1Right.X -= playerSpeed;
+                p1Top.X -= playerSpeed;
+                p1Left.X -= playerSpeed;
             }
 
-            if (dPressed == true && player1.X < this.Width - player1.Width && player1.X + player1.Width <= this.Width / 2)
+            if (dPressed && player1.X < this.Width - player1.Width && player1.X + player1.Width <= (this.Width / 2 - divider.Width))
             {
-                player1.X = player1.X + playerXSpeed;
+                player1.X += playerSpeed;
+                p1Bottom.X += playerSpeed;
+                p1Right.X += playerSpeed;
+                p1Top.X += playerSpeed;
+                p1Left.X += playerSpeed;
             }
 
             //move player 2
             if (upPressed == true && player2.Y > 0)
             {
-                player2.Y -= playerYSpeed;
+                player2.Y -= playerSpeed;
+                p2Bottom.Y -= playerSpeed;
+                p2Right.Y -= playerSpeed;
+                p2Top.Y -= playerSpeed;
+                p2Left.Y -= playerSpeed;
             }
 
             if (downPressed == true && player2.Y < this.Height - player2.Height)
             {
-                player2.Y += playerYSpeed;
+                player2.Y += playerSpeed;
+                p2Bottom.Y += playerSpeed;
+                p2Right.Y += playerSpeed;
+                p2Top.Y += playerSpeed;
+                p2Left.Y += playerSpeed;
             }
 
-            if (leftPressed == true && player2.X > 0 && player2.X >= this.Width / 2 + divider.Width / 2)
+            if (leftPressed == true && player2.X > 0 && player2.X >= this.Width/2 + divider.Width)
             {
-                player2.X -= playerXSpeed;
+                player2.X -= playerSpeed;
+                p2Bottom.X -= playerSpeed;
+                p2Right.X -= playerSpeed;
+                p2Top.X -= playerSpeed;
+                p2Left.X -= playerSpeed;
             }
 
             if (rightPressed == true && player2.X < this.Width - player2.Width)
             {
-                player2.X += playerXSpeed;
-            }
-
-            if (player1.IntersectsWith(bottomSide))
-            {
-                ballXSpeed *= -1F;
-
-                ballYSpeed *= -1F;
-                ballYSpeed += -7F;
-
-                ball.Y = player1.Y - ball.Width;
-            }
-
-            //Player 1 left side
-            if (player1.IntersectsWith(leftSide))
-            {
-                ballYSpeed *= -1F;
-
-                ballXSpeed *= -1F;
-                ballXSpeed += 7F;
-
-                ball.X = player1.X + player1.Width;
-
-            }
-
-            //player 1 left side
-            if (player1.IntersectsWith(rightSide))
-            {
-                ballYSpeed *= -1F;
-
-                ballXSpeed *= -1F;
-                ballXSpeed += -7F;
-
-                ball.X = player1.X - ball.Width;
-            }
-
-            //Player 2 right side
-            if (player2.IntersectsWith(rightSide))
-            {
-                ballYSpeed *= -1F;
-
-                ballXSpeed *= -1F;
-                ballXSpeed += -7F;
-
-                ball.X = player2.X - ball.Width;
+                player2.X += playerSpeed;
+                p2Bottom.X += playerSpeed;
+                p2Right.X += playerSpeed;
+                p2Top.X += playerSpeed;
+                p2Left.X += playerSpeed;
             }
 
             //check if ball goes off left side of screen
             if (ball.X <= 0)
             {
-                if (turn % 2 != 0)
-                {
-                    winLabel.Text = "Player 2 wins";
-                }
-                else
-                {
-                    winLabel.Text = "Player 1 wins";
-                }
+                player2Score++;
 
-                gameTimer.Stop();
+                coinSound.Play();
+                ResetBall();
             }
 
             //check if ball goes off right side of screen
             if (ball.X >= this.Width)
             {
-                if (turn % 2 != 0)
-                {
-                    player1Score++;
-                    p1ScoreLabel.Text = $"{player1Score}";
-                }
-                else
-                {
-                    player2Score++;
-                    p2ScoreLabel.Text = $"{player2Score}";
-                }
+                player1Score++;
 
-                ballXSpeed = -10;
-
-                turn++;
+                coinSound.Play();
+                ResetBall();
             }
 
-            //if (ticks % 5 == 0)
-            //{
-            //    ballYSpeed = ballYSpeed * 0.925F;
-            //    ballXSpeed = ballXSpeed * 0.925F;
 
-            //    p1ScoreLabel.Text = ballXSpeed + "";
-            //    p2ScoreLabel.Text = ballYSpeed + "";
+            BallPlayerCollision();
 
-            //}
+            if (ticks % 5 == 0)
+            {
+                ballYSpeed = ballYSpeed * 0.95F;
+                ballXSpeed = ballXSpeed * 0.95F;
+            }
 
-            topSide.X = ball.X + 1;
-            topSide.Y = ball.Y;
+            if (player1Score == 3)
+            {
+                winLabel.Text = $"Player 1 wins\n\nClick ESC to play again";
+                gameTimer.Stop();
+            }
+            if (player2Score == 3)
+            {
+                winLabel.Text = $"Player 2 wins\n\nClick ESC to play again";
+                gameTimer.Stop();
+            }
 
-            bottomSide.X = ball.X + 1;
-            bottomSide.Y = ball.Y + ball.Height - 1;
 
-            leftSide.X = ball.X;
-            leftSide.Y = ball.Y + 1;
-
-            rightSide.X = ball.X + ball.Width - 1;
-            rightSide.Y = ball.Y + 1;
 
             Refresh();
         }
@@ -283,28 +289,115 @@ namespace Pong
         {
             ticks++;
 
+            //Drawing
+            e.Graphics.FillEllipse(blueBrush, player1);
+            e.Graphics.DrawEllipse(lightBlueBrush, player1);
 
-            e.Graphics.FillRectangle(blueBrush, player1);
-            e.Graphics.FillRectangle(blueBrush, player2);
-            e.Graphics.FillRectangle(whiteBrush, ball);
+            e.Graphics.FillEllipse(redBrush, player2);
+            e.Graphics.DrawEllipse(lightRedBrush, player2);
 
-
-
-            e.Graphics.FillRectangle(blueBrush, topSide);
-            e.Graphics.FillRectangle(blueBrush, bottomSide);
-            e.Graphics.FillRectangle(blueBrush, leftSide);
-            e.Graphics.FillRectangle(blueBrush, rightSide);
+            e.Graphics.FillEllipse(whiteBrush, ball);
 
             e.Graphics.FillRectangle(blueBrush, divider);
 
-            if (turn % 2 == 0)
+            //Score
+            p1ScoreLabel.Text = $"{player1Score}";
+            p2ScoreLabel.Text = $"{player2Score}";
+        }
+
+        private void BallPlayerCollision()
+        {
+            //p1
+            if (ball.IntersectsWith(p1Left))
             {
-                e.Graphics.DrawRectangle(whitePen, player2);
+                ballXSpeed += ballHitSpeed;
+                boomSound.Play();
             }
-            else
+            if (ball.IntersectsWith(p1Top))
             {
-                e.Graphics.DrawRectangle(whitePen, player1);
+                ballYSpeed += -ballHitSpeed;
+                boomSound.Play();
             }
+            if (ball.IntersectsWith(p1Bottom))
+            {
+                ballYSpeed += ballHitSpeed;
+                boomSound.Play();
+            }
+            if (ball.IntersectsWith(p1Right))
+            {
+                ballXSpeed += -ballHitSpeed;
+                boomSound.Play();
+            }
+
+            //p2
+            if (ball.IntersectsWith(p2Left))
+            {
+                ballXSpeed += ballHitSpeed;
+                boomSound.Play();
+            }
+            if (ball.IntersectsWith(p2Top))
+            {
+                ballYSpeed += -ballHitSpeed;
+                boomSound.Play();
+            }
+            if (ball.IntersectsWith(p2Bottom))
+            {
+                ballYSpeed += ballHitSpeed;
+                boomSound.Play();
+            }
+            if (ball.IntersectsWith(p2Right))
+            {
+                ballXSpeed += -ballHitSpeed;
+                boomSound.Play();
+            }
+        }
+
+        private void ResetBall()
+        {
+            int randDirection = random.Next(-1, 2);
+            while (randDirection == 0)
+            {
+                randDirection = random.Next(-1, 2);
+            }
+
+            ballXSpeed = 3 * randDirection;
+
+            randDirection = random.Next(-1, 2);
+            while (randDirection == 0)
+            {
+                randDirection = random.Next(-1, 2);
+            }
+
+            ballYSpeed = 3 * randDirection;
+
+            ball.X = 360;
+            ball.Y = 195;
+        }
+
+        private void ResetGame()
+        {
+            Rectangle player1 = new Rectangle(140, 175, 30, 30);
+            Rectangle player2 = new Rectangle(550, 175, 30, 30);
+            Rectangle ball = new Rectangle(280, 180, 20, 20);
+
+            Rectangle p1Bottom = new Rectangle(148, 202, 14, 7);
+            Rectangle p1Right = new Rectangle(137, 180, 7, 20);
+            Rectangle p1Left = new Rectangle(166, 180, 7, 20);
+            Rectangle p1Top = new Rectangle(149, 173, 14, 7);
+
+            Rectangle p2Bottom = new Rectangle(557, 202, 14, 7);
+            Rectangle p2Right = new Rectangle(548, 180, 7, 20);
+            Rectangle p2Left = new Rectangle(576, 180, 7, 20);
+            Rectangle p2Top = new Rectangle(557, 173, 14, 7);
+
+            player1Score = 0;
+            player2Score = 0;
+
+            ticks = 0;
+
+            winLabel.Text = null;
+
+            gameTimer.Start();
         }
 
     }
