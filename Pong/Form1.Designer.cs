@@ -66,7 +66,7 @@
             this.winLabel.ForeColor = System.Drawing.Color.White;
             this.winLabel.Location = new System.Drawing.Point(124, 182);
             this.winLabel.Name = "winLabel";
-            this.winLabel.Size = new System.Drawing.Size(352, 23);
+            this.winLabel.Size = new System.Drawing.Size(352, 76);
             this.winLabel.TabIndex = 3;
             this.winLabel.TextAlign = System.Drawing.ContentAlignment.TopCenter;
             // 

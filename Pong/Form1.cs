@@ -42,6 +42,9 @@ namespace Pong
         Rectangle p2Left = new Rectangle(576, 180, 7, 20);
         Rectangle p2Top = new Rectangle(557, 173, 14, 7);
 
+        Rectangle p1Net = new Rectangle(0, 200 - 75, 10, 150);
+
+        Rectangle p2Net = new Rectangle(600 - 10, 200 - 75, 10, 150);
 
         Rectangle divider = new Rectangle(295, 0, 10, 600);
 
@@ -67,13 +70,14 @@ namespace Pong
 
         Random random = new Random();
 
+        SolidBrush purpleBrush = new SolidBrush(Color.Purple);
         SolidBrush blueBrush = new SolidBrush(Color.DodgerBlue);
         SolidBrush redBrush = new SolidBrush(Color.Red);
         SolidBrush whiteBrush = new SolidBrush(Color.White);
 
         Pen whitePen = new Pen(Color.White, 3);
-        Pen lightBlueBrush = new Pen(Color.LightBlue, 3);
-        Pen lightRedBrush = new Pen(Color.Pink, 3);
+        Pen lightBluePen = new Pen(Color.LightBlue, 3);
+        Pen lightRedPen = new Pen(Color.Pink, 3);
 
         SoundPlayer boomSound = new SoundPlayer(Properties.Resources.Boom);
         SoundPlayer coinSound = new SoundPlayer(Properties.Resources.Coin);
@@ -168,6 +172,13 @@ namespace Pong
                 boomSound.Play();
             }
 
+            //Bounces off back
+            if (ball.X <= 0 || ball.X >= this.Width - ball.Width)
+            {
+                ballXSpeed *= -1;
+                boomSound.Play();
+            }
+
             //move player 1
             if (wPressed && player1.Y > 0)
             {
@@ -243,7 +254,7 @@ namespace Pong
             }
 
             //check if ball goes off left side of screen
-            if (ball.X <= 0)
+            if (ball.IntersectsWith(p1Net))
             {
                 player2Score++;
 
@@ -252,7 +263,7 @@ namespace Pong
             }
 
             //check if ball goes off right side of screen
-            if (ball.X >= this.Width)
+            if (ball.IntersectsWith(p2Net))
             {
                 player1Score++;
 
@@ -289,16 +300,23 @@ namespace Pong
         {
             ticks++;
 
+
             //Drawing
+            e.Graphics.FillRectangle(purpleBrush, divider);
+
+            e.Graphics.DrawRectangle(lightBluePen, p1Net);
+            e.Graphics.FillRectangle(blueBrush, p1Net);
+
+            e.Graphics.DrawRectangle(lightRedPen, p2Net);
+            e.Graphics.FillRectangle(redBrush, p2Net);
+
             e.Graphics.FillEllipse(blueBrush, player1);
-            e.Graphics.DrawEllipse(lightBlueBrush, player1);
+            e.Graphics.DrawEllipse(lightBluePen, player1);
 
             e.Graphics.FillEllipse(redBrush, player2);
-            e.Graphics.DrawEllipse(lightRedBrush, player2);
+            e.Graphics.DrawEllipse(lightRedPen, player2);
 
             e.Graphics.FillEllipse(whiteBrush, ball);
-
-            e.Graphics.FillRectangle(blueBrush, divider);
 
             //Score
             p1ScoreLabel.Text = $"{player1Score}";
@@ -376,19 +394,30 @@ namespace Pong
 
         private void ResetGame()
         {
-            Rectangle player1 = new Rectangle(140, 175, 30, 30);
-            Rectangle player2 = new Rectangle(550, 175, 30, 30);
-            Rectangle ball = new Rectangle(280, 180, 20, 20);
+            player1.X = 140;
+            player1.Y = 175;
+            player2.X = 550;
+            player2.Y = 175;
+            ball.X = 280;
+            ball.Y = 180;
 
-            Rectangle p1Bottom = new Rectangle(148, 202, 14, 7);
-            Rectangle p1Right = new Rectangle(137, 180, 7, 20);
-            Rectangle p1Left = new Rectangle(166, 180, 7, 20);
-            Rectangle p1Top = new Rectangle(149, 173, 14, 7);
+            p1Bottom.X = 148;
+            p1Bottom.Y = 202;
+            p1Right.X = 137;
+            p1Right.Y = 180;
+            p1Left.X = 166;
+            p1Right.Y = 180;
+            p1Top.X = 159;
+            p1Top.Y = 173;
 
-            Rectangle p2Bottom = new Rectangle(557, 202, 14, 7);
-            Rectangle p2Right = new Rectangle(548, 180, 7, 20);
-            Rectangle p2Left = new Rectangle(576, 180, 7, 20);
-            Rectangle p2Top = new Rectangle(557, 173, 14, 7);
+            p2Bottom.X = 557;
+            p2Bottom.Y = 202;
+            p2Right.X = 548;
+            p2Right.Y = 180;
+            p2Left.X = 576;
+            p2Left.Y = 180;
+            p2Top.X = 557;
+            p2Top.Y = 173;
 
             player1Score = 0;
             player2Score = 0;
